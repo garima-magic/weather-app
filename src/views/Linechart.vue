@@ -1,5 +1,5 @@
 <template>
-  <canvas ref="myChart" :width="width" :height="height" responsive='true'></canvas>
+  <canvas ref="myChart" :width="width" :height="height"></canvas>
 </template>
 
 <script>
@@ -36,11 +36,13 @@ export default {
     datasets(newDatasets) {
        this.chart = new Chart(this.$refs.myChart, {
       type: 'line',
+      responsive:true,
       data: {
         labels: this.labels,
         datasets: newDatasets
       },
       options: this.options
+
     });
       this.chart.update();
     },

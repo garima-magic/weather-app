@@ -92,14 +92,14 @@
 </template>
 
 <script>
-import store from "@/store.js";
+import data from "@/data.js";
 export default {
   name: "Home",
   data() {
     return {
       showMore: false,
-      weather: store.query.results.channel,
-      forecast: store.query.results.channel.item.forecast,
+      weather: data.query.results.channel,
+      forecast: data.query.results.channel.item.forecast,
     };
   },
   methods:{

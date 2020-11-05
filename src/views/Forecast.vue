@@ -4,8 +4,8 @@
       :width="500"
       :height="300"
       :labels="customLabels"
-      :datasets="customDataSets"
-      :options="$options.options"
+      :datasets="dynamicDataSet"
+      :options="dynamicOptions"
     ></line-chart>
 
     <p class="my-4" v-html="weather.item.description"></p>
@@ -13,126 +13,54 @@
 </template>
 
 <script>
-import numeral from "numeral";
-import store from "@/store.js";
-
+import data from "@/data.js";
 import LineChart from "./Linechart";
+import { tempDataSets, tempOptions } from "../constants/ChartConstants";
+import numeral from "numeral";
 
-let datasets = [
-  {
-    label: "High Temp",
-    borderColor: "rgba(50, 115, 220, 0.5)",
-    backgroundColor: "white",
-    data: [],
-    yAxisID: "High",
-    text: []
-  },
-  {
-    label: "Low Temp",
-    borderColor: "rgba(255, 56, 96, 0.5)",
-    backgroundColor: "white",
-    data: [],
-    yAxisID: "low",
-  },
-];
-const options = {
-  scales: {
-    xAxes: [
-      {
-        display: true,
-        ticks: {
-          startWith: "Tue",
-        },
-        position: "bottom",
-        scaleLabel: {
-          display: true,
-          labelString: "Day",
-          fontColor: "black",
-        },
-      },
-    ],
-    yAxes: [
-      {
-        type: "linear",
-        display: true,
-        position: "left",
-        id: "High",
-        scaleLabel: {
-          display: true,
-          labelString: "High Temprature",
-          fontColor: "red",
-        },
-      },
-      {
-        type: "linear",
-        display: true,
-        position: "left",
-        id: "low",
-        scaleLabel: {
-          display: true,
-          labelString: "Low Temprature",
-          fontColor: "blue",
-        },
-      },
-    ],
-  },
-  tooltips: {
-    mode: "index",
-    callbacks: {
-      label(tooltipItem, data) {
-        const label = data.datasets[tooltipItem.datasetIndex].label;
-        const value = numeral(tooltipItem.yLabel).format("0,0");
-        return `${label}: ${value}`;
-      },
-    },
-  },
-};
 export default {
   name: "forecast",
-  datasets,
-  options,
   components: {
     LineChart,
   },
   data() {
     return {
-      lowTemp: [],
-      highTemp: [],
+      dynamicOptions: {},
+      dynamicDataSet: [],
       customLabels: [],
-      weather: store.query.results.channel,
-      forecast: store.query.results.channel.item.forecast,
-      customDataSets: [],
-      text: "",
+      weather: data.query.results.channel,
+      forecast: data.query.results.channel.item.forecast,
     };
   },
   mounted() {
-    this.displayData("day");
-    this.displayData("high");
-    this.displayData("low");
-    this.displayData("text");
-
+    this.displayData();
     this.displayedDatasets();
+    this.displayCustomOptions();
   },
-
+  computed: {},
   methods: {
     displayedDatasets() {
-      this.customDataSets = datasets;
-      datasets[0].data = this.highTemp;
-      datasets[0].text = this.text;
-      datasets[1].data = this.lowTemp;
-       datasets[1].text = this.text;
+      this.dynamicDataSet = [...tempDataSets];
+      this.dynamicDataSet[0].data = this.forecast.map((obj) => obj["high"]);
+      this.dynamicDataSet[1].data = this.forecast.map((obj) => obj["low"]);
     },
 
-    displayData(type) {
-      if (type == "day") {
-        this.customLabels = this.forecast.map((obj) => obj[type]);
-      } else if (type == "high") {
-        this.highTemp = this.forecast.map((obj) => obj[type]);
-      } else if (type == "low") {
-        this.lowTemp = this.forecast.map((obj) => obj[type]);
-      } else {
-        this.text = this.forecast.map((obj) => obj[type]);
-      }
+    displayCustomOptions() {
+      this.dynamicOptions = { ...tempOptions };
+      this.dynamicOptions.tooltips = {
+        mode: "index",
+        enabled:true,
+        callbacks: {
+          label(tooltipItem, data) {
+            const { label } = data.datasets[tooltipItem.datasetIndex];
+            const value = numeral(tooltipItem.yLabel).format("0,0");
+            return `${label}: ${value}`;
+          },
+        },
+      };
+    },
+    displayData() {
+      this.customLabels = this.forecast.map((obj) => obj["day"]);
     },
   },
 };
